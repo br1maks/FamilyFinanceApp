@@ -1,0 +1,494 @@
+@startuml
+' Определение пакетов и классов на основе структуры проекта FamilyFinanceApp
+
+' Пакет Config
+package "com.familyfinance.config" {
+  class SecurityConfig {
+    -passwordEncoder: PasswordEncoder
+    -authenticationManager: AuthenticationManager
+    +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+    +authenticationManager(auth: AuthenticationConfiguration): AuthenticationManager
+    +passwordEncoder(): PasswordEncoder
+  }
+
+  class WebConfig {
+    +addCorsMappings(registry: CorsRegistry): void
+  }
+}
+
+' Пакет Controller
+package "com.familyfinance.controller" {
+  class AdminController {
+    -userService: UserService
+    -familyService: FamilyService
+    +getAllUsers(): ResponseEntity<List<UserResponse>>
+    +banUser(id: Long): ResponseEntity<Void>
+    +unbanUser(id: Long): ResponseEntity<Void>
+    +deleteUser(id: Long): ResponseEntity<Void>
+    +getAllFamilies(): ResponseEntity<List<FamilyResponse>>
+    +deleteFamily(id: Long): ResponseEntity<Void>
+  }
+
+  class AuthController {
+    -authenticationService: AuthenticationService
+    +register(request: RegisterRequest): ResponseEntity<AuthenticationResponse>
+    +login(request: LoginRequest): ResponseEntity<AuthenticationResponse>
+    +refreshToken(request: RefreshTokenRequest): ResponseEntity<AuthenticationResponse>
+  }
+
+  class BudgetController {
+    -budgetService: BudgetService
+    +getBudget(familyId: Long): ResponseEntity<BudgetResponse>
+    +setBudgetLimit(familyId: Long, request: BudgetLimitRequest): ResponseEntity<BudgetResponse>
+  }
+
+  class CategoryController {
+    -categoryService: CategoryService
+    +getAllCategories(familyId: Long): ResponseEntity<List<CategoryResponse>>
+    +createCategory(request: CategoryRequest): ResponseEntity<CategoryResponse>
+    +deleteCategory(id: Long): ResponseEntity<Void>
+  }
+
+  class FamilyController {
+    -familyService: FamilyService
+    +createFamily(request: FamilyCreateRequest): ResponseEntity<FamilyResponse>
+    +getFamily(id: Long): ResponseEntity<FamilyResponse>
+    +deleteFamily(id: Long): ResponseEntity<Void>
+    +joinFamily(request: FamilyJoinRequest): ResponseEntity<FamilyResponse>
+    +leaveFamily(id: Long): ResponseEntity<Void>
+    +kickMember(familyId: Long, request: FamilyKickRequest): ResponseEntity<Void>
+    +getInviteCode(id: Long): ResponseEntity<InviteCodeResponse>
+    +setMemberRole(familyId: Long, memberId: Long, request: FamilyRoleRequest): ResponseEntity<Void>
+  }
+
+  class GoalController {
+    -goalService: GoalService
+    +getAllGoals(familyId: Long): ResponseEntity<List<GoalResponse>>
+    +createGoal(request: GoalRequest): ResponseEntity<GoalResponse>
+    +updateGoal(id: Long, request: GoalUpdateRequest): ResponseEntity<GoalResponse>
+    +deleteGoal(id: Long): ResponseEntity<Void>
+  }
+
+  class TransactionController {
+    -transactionService: TransactionService
+    +getAllTransactions(budgetId: Long): ResponseEntity<List<TransactionResponse>>
+    +createTransaction(request: TransactionRequest): ResponseEntity<TransactionResponse>
+  }
+
+  class UserController {
+    -userService: UserService
+    +getCurrentUser(): ResponseEntity<UserResponse>
+    +getUserFamilies(): ResponseEntity<List<FamilyResponse>>
+  }
+}
+
+' Пакет DTO
+package "com.familyfinance.dto" {
+  class AuthenticationResponse {
+    -accessToken: String
+    -refreshToken: String
+  }
+
+  class BudgetLimitRequest {
+    -limit: BigDecimal
+  }
+
+  class BudgetResponse {
+    -id: Long
+    -familyId: Long
+    -limit: BigDecimal
+    -currentAmount: BigDecimal
+  }
+
+  class CategoryRequest {
+    -name: String
+    -familyId: Long
+  }
+
+  class CategoryResponse {
+    -id: Long
+    -name: String
+    -familyId: Long
+  }
+
+  class FamilyCreateRequest {
+    -name: String
+  }
+
+  class FamilyJoinRequest {
+    -inviteCode: String
+  }
+
+  class FamilyKickRequest {
+    -memberId: Long
+  }
+
+  class FamilyResponse {
+    -id: Long
+    -name: String
+    -ownerId: Long
+    -members: List<FamilyMemberResponse>
+  }
+
+  class FamilyMemberResponse {
+    -id: Long
+    -username: String
+    -role: FamilyRole
+  }
+
+  class FamilyRoleRequest {
+    -role: FamilyRole
+  }
+
+  class GoalRequest {
+    -name: String
+    -targetAmount: BigDecimal
+    -deadline: LocalDate
+    -familyId: Long
+  }
+
+  class GoalResponse {
+    -id: Long
+    -name: String
+    -targetAmount: BigDecimal
+    -currentAmount: BigDecimal
+    -deadline: LocalDate
+    -familyId: Long
+  }
+
+  class GoalUpdateRequest {
+    -targetAmount: BigDecimal
+    -deadline: LocalDate
+  }
+
+  class InviteCodeResponse {
+    -inviteCode: String
+  }
+
+  class LoginRequest {
+    -email: String
+    -password: String
+  }
+
+  class RefreshTokenRequest {
+    -refreshToken: String
+  }
+
+  class RegisterRequest {
+    -username: String
+    -email: String
+    -password: String
+  }
+
+  class TransactionRequest {
+    -amount: BigDecimal
+    -type: TransactionType
+    -categoryId: Long
+    -description: String
+    -date: LocalDateTime
+  }
+
+  class TransactionResponse {
+    -id: Long
+    -amount: BigDecimal
+    -type: TransactionType
+    -categoryId: Long
+    -description: String
+    -date: LocalDateTime
+    -budgetId: Long
+  }
+
+  class UserResponse {
+    -id: Long
+    -username: String
+    -email: String
+    -enabled: boolean
+  }
+}
+
+' Пакет Enums
+package "com.familyfinance.enums" {
+  enum FamilyRole {
+    OWNER
+    ADMIN
+    MEMBER
+  }
+
+  enum TransactionType {
+    INCOME
+    EXPENSE
+  }
+}
+
+' Пакет Model
+package "com.familyfinance.model" {
+  class Budget {
+    -id: Long
+    -family: Family
+    -limit: BigDecimal
+    -currentAmount: BigDecimal
+    -transactions: List<Transaction>
+  }
+
+  class Category {
+    -id: Long
+    -name: String
+    -family: Family
+    -transactions: List<Transaction>
+  }
+
+  class Family {
+    -id: Long
+    -name: String
+    -inviteCode: String
+    -owner: User
+    -members: List<FamilyMember>
+    -budget: Budget
+  }
+
+  class FamilyMember {
+    -id: Long
+    -user: User
+    -family: Family
+    -role: FamilyRole
+  }
+
+  class Goal {
+    -id: Long
+    -name: String
+    -targetAmount: BigDecimal
+    -currentAmount: BigDecimal
+    -deadline: LocalDate
+    -family: Family
+  }
+
+  class Transaction {
+    -id: Long
+    -amount: BigDecimal
+    -type: TransactionType
+    -description: String
+    -date: LocalDateTime
+    -category: Category
+    -budget: Budget
+  }
+
+  class User {
+    -id: Long
+    -username: String
+    -email: String
+    -password: String
+    -enabled: boolean
+    -families: List<FamilyMember>
+  }
+}
+
+' Пакет Repository
+package "com.familyfinance.repository" {
+  interface BudgetRepository {
+    +findByFamilyId(familyId: Long): Optional<Budget>
+  }
+
+  interface CategoryRepository {
+    +findByFamilyId(familyId: Long): List<Category>
+  }
+
+  interface FamilyMemberRepository {
+    +findByUserId(userId: Long): List<FamilyMember>
+    +findByFamilyIdAndUserId(familyId: Long, userId: Long): Optional<FamilyMember>
+  }
+
+  interface FamilyRepository {
+    +findByInviteCode(inviteCode: String): Optional<Family>
+  }
+
+  interface GoalRepository {
+    +findByFamilyId(familyId: Long): List<Goal>
+  }
+
+  interface TransactionRepository {
+    +findByBudgetId(budgetId: Long): List<Transaction>
+  }
+
+  interface UserRepository {
+    +findByEmail(email: String): Optional<User>
+  }
+}
+
+' Пакет Security
+package "com.familyfinance.security" {
+  class JwtAuthenticationFilter {
+    -jwtService: JwtService
+    -userDetailsService: UserDetailsService
+    +doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain): void
+  }
+
+  class JwtService {
+    -secretKey: String
+    +generateToken(userDetails: UserDetails): String
+    +generateRefreshToken(userDetails: UserDetails): String
+    +extractUsername(token: String): String
+    +isTokenValid(token: String, userDetails: UserDetails): boolean
+  }
+
+  class UserDetailsImpl {
+    -id: Long
+    -username: String
+    -email: String
+    -password: String
+    -enabled: boolean
+    -authorities: Collection<? extends GrantedAuthority>
+    +getAuthorities(): Collection<? extends GrantedAuthority>
+    +getPassword(): String
+    +getUsername(): String
+    +isAccountNonExpired(): boolean
+    +isAccountNonLocked(): boolean
+    +isCredentialsNonExpired(): boolean
+    +isEnabled(): boolean
+  }
+}
+
+' Пакет Service
+package "com.familyfinance.service" {
+  class AuthenticationService {
+    -userRepository: UserRepository
+    -passwordEncoder: PasswordEncoder
+    -jwtService: JwtService
+    +register(request: RegisterRequest): AuthenticationResponse
+    +login(request: LoginRequest): AuthenticationResponse
+    +refreshToken(request: RefreshTokenRequest): AuthenticationResponse
+  }
+
+  class BudgetService {
+    -budgetRepository: BudgetRepository
+    -familyService: FamilyService
+    +getBudget(familyId: Long): BudgetResponse
+    +setBudgetLimit(familyId: Long, limit: BigDecimal): BudgetResponse
+  }
+
+  class CategoryService {
+    -categoryRepository: CategoryRepository
+    -familyService: FamilyService
+    +getAllCategories(familyId: Long): List<CategoryResponse>
+    +createCategory(request: CategoryRequest): CategoryResponse
+    +deleteCategory(id: Long): void
+  }
+
+  class FamilyService {
+    -familyRepository: FamilyRepository
+    -familyMemberRepository: FamilyMemberRepository
+    -userService: UserService
+    -budgetService: BudgetService
+    +createFamily(userId: Long, request: FamilyCreateRequest): FamilyResponse
+    +getFamily(id: Long, userId: Long): FamilyResponse
+    +deleteFamily(id: Long, userId: Long): void
+    +joinFamily(userId: Long, request: FamilyJoinRequest): FamilyResponse
+    +leaveFamily(familyId: Long, userId: Long): void
+    +kickMember(familyId: Long, memberId: Long, userId: Long): void
+    +getInviteCode(familyId: Long, userId: Long): InviteCodeResponse
+    +setMemberRole(familyId: Long, memberId: Long, role: FamilyRole, userId: Long): void
+  }
+
+  class GoalService {
+    -goalRepository: GoalRepository
+    -familyService: FamilyService
+    +getAllGoals(familyId: Long): List<GoalResponse>
+    +createGoal(request: GoalRequest): GoalResponse
+    +updateGoal(id: Long, request: GoalUpdateRequest): GoalResponse
+    +deleteGoal(id: Long): void
+  }
+
+  class TransactionService {
+    -transactionRepository: TransactionRepository
+    -categoryService: CategoryService
+    -budgetService: BudgetService
+    +getAllTransactions(budgetId: Long): List<TransactionResponse>
+    +createTransaction(request: TransactionRequest): TransactionResponse
+  }
+
+  class UserService {
+    -userRepository: UserRepository
+    -familyMemberRepository: FamilyMemberRepository
+    +getCurrentUser(userId: Long): UserResponse
+    +getUserFamilies(userId: Long): List<FamilyResponse>
+    +getAllUsers(): List<UserResponse>
+    +banUser(id: Long): void
+    +unbanUser(id: Long): void
+    +deleteUser(id: Long): void
+  }
+}
+
+' Пакет Exception
+package "com.familyfinance.exception" {
+  class ResourceNotFoundException {
+    -message: String
+  }
+}
+
+' Зависимости между классами
+' Контроллеры зависят от сервисов
+AdminController --> UserService
+AdminController --> FamilyService
+AuthController --> AuthenticationService
+BudgetController --> BudgetService
+CategoryController --> CategoryService
+FamilyController --> FamilyService
+GoalController --> GoalService
+TransactionController --> TransactionService
+UserController --> UserService
+
+' Сервисы зависят от репозиториев
+AuthenticationService --> UserRepository
+BudgetService --> BudgetRepository
+CategoryService --> CategoryRepository
+FamilyService --> FamilyRepository
+FamilyService --> FamilyMemberRepository
+GoalService --> GoalRepository
+TransactionService --> TransactionRepository
+UserService --> UserRepository
+UserService --> FamilyMemberRepository
+
+' Модели и их связи
+User "1" -- "0..*" FamilyMember
+Family "1" -- "0..*" FamilyMember
+Family "1" -- "1" Budget
+Family "1" -- "0..*" Category
+Family "1" -- "0..*" Goal
+Budget "1" -- "0..*" Transaction
+Category "1" -- "0..*" Transaction
+
+' DTO используются контроллерами и сервисами
+AuthController --> RegisterRequest
+AuthController --> LoginRequest
+AuthController --> RefreshTokenRequest
+AuthController --> AuthenticationResponse
+BudgetController --> BudgetLimitRequest
+BudgetController --> BudgetResponse
+CategoryController --> CategoryRequest
+CategoryController --> CategoryResponse
+FamilyController --> FamilyCreateRequest
+FamilyController --> FamilyJoinRequest
+FamilyController --> FamilyKickRequest
+FamilyController --> FamilyResponse
+FamilyController --> FamilyRoleRequest
+FamilyController --> InviteCodeResponse
+GoalController --> GoalRequest
+GoalController --> GoalResponse
+GoalController --> GoalUpdateRequest
+TransactionController --> TransactionRequest
+TransactionController --> TransactionResponse
+UserController --> UserResponse
+
+' Перечисления используются моделями и DTO
+FamilyMember --> FamilyRole
+FamilyRoleRequest --> FamilyRole
+Transaction --> TransactionType
+TransactionRequest --> TransactionType
+TransactionResponse --> TransactionType
+
+' Безопасность
+JwtAuthenticationFilter --> JwtService
+JwtAuthenticationFilter --> UserDetailsImpl
+AuthenticationService --> JwtService
+UserDetailsImpl --> User
+
+@enduml

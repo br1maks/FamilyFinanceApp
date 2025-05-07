@@ -1,0 +1,158 @@
+@startuml
+' Настройки для компактности
+skinparam dpi 150
+skinparam classFontSize 10
+skinparam padding 2
+skinparam monochrome true
+left to right direction
+
+' Пакет Config
+package "com.familyfinance.config" {
+  class SecurityConfig {
+    -passwordEncoder: PasswordEncoder
+    -authenticationManager: AuthenticationManager
+    +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+  }
+
+  class WebConfig {
+    +addCorsMappings(registry: CorsRegistry): void
+  }
+}
+
+' Пакет Controller
+package "com.familyfinance.controller" {
+  class AdminController {
+    -userService: UserService
+    -familyService: FamilyService
+    +getAllUsers(): ResponseEntity<List<UserResponse>>
+  }
+
+  class AuthController {
+    -authenticationService: AuthenticationService
+    +register(request: RegisterRequest): ResponseEntity<AuthenticationResponse>
+  }
+
+  class BudgetController {
+    -budgetService: BudgetService
+    +getBudget(familyId: Long): ResponseEntity<BudgetResponse>
+  }
+
+  class CategoryController {
+    -categoryService: CategoryService
+    +getAllCategories(familyId: Long): ResponseEntity<List<CategoryResponse>>
+  }
+
+  class FamilyController {
+    -familyService: FamilyService
+    +createFamily(request: FamilyCreateRequest): ResponseEntity<FamilyResponse>
+  }
+
+  class GoalController {
+    -goalService: GoalService
+    +getAllGoals(familyId: Long): ResponseEntity<List<GoalResponse>>
+  }
+
+  class TransactionController {
+    -transactionService: TransactionService
+    +getAllTransactions(budgetId: Long): ResponseEntity<List<TransactionResponse>>
+  }
+
+  class UserController {
+    -userService: UserService
+    +getCurrentUser(): ResponseEntity<UserResponse>
+  }
+}
+
+' Пакет Security
+package "com.familyfinance.security" {
+  class JwtAuthenticationFilter {
+    -jwtService: JwtService
+    -userDetailsService: UserDetailsService
+    +doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain): void
+  }
+
+  class JwtService {
+    -secretKey: String
+    +generateToken(userDetails: UserDetails): String
+  }
+
+  class UserDetailsImpl {
+    -id: Long
+    -username: String
+    +getAuthorities(): Collection<? extends GrantedAuthority>
+  }
+}
+
+' Пакет Service
+package "com.familyfinance.service" {
+  class AuthenticationService {
+    -userRepository: UserRepository
+    -passwordEncoder: PasswordEncoder
+    -jwtService: JwtService
+    +register(request: RegisterRequest): AuthenticationResponse
+  }
+
+  class BudgetService {
+    -budgetRepository: BudgetRepository
+    -familyService: FamilyService
+    +getBudget(familyId: Long): BudgetResponse
+  }
+
+  class CategoryService {
+    -categoryRepository: CategoryRepository
+    -familyService: FamilyService
+    +getAllCategories(familyId: Long): List<CategoryResponse>
+  }
+
+  class FamilyService {
+    -familyRepository: FamilyRepository
+    -familyMemberRepository: FamilyMemberRepository
+    -userService: UserService
+    -budgetService: BudgetService
+    +createFamily(userId: Long, request: FamilyCreateRequest): FamilyResponse
+  }
+
+  class GoalService {
+    -goalRepository: GoalRepository
+    -familyService: FamilyService
+    +getAllGoals(familyId: Long): List<GoalResponse>
+  }
+
+  class TransactionService {
+    -transactionRepository: TransactionRepository
+    -categoryService: CategoryService
+    -budgetService: BudgetService
+    +getAllTransactions(budgetId: Long): List<TransactionResponse>
+  }
+
+  class UserService {
+    -userRepository: UserRepository
+    -familyMemberRepository: FamilyMemberRepository
+    +getCurrentUser(userId: Long): UserResponse
+  }
+}
+
+' Пакет Exception
+package "com.familyfinance.exception" {
+  class ResourceNotFoundException {
+    -message: String
+  }
+}
+
+' Зависимости
+AdminController --> UserService
+AdminController --> FamilyService
+AuthController --> AuthenticationService
+BudgetController --> BudgetService
+CategoryController --> CategoryService
+FamilyController --> FamilyService
+GoalController --> GoalService
+TransactionController --> TransactionService
+UserController --> UserService
+
+JwtAuthenticationFilter --> JwtService
+JwtAuthenticationFilter --> UserDetailsImpl
+AuthenticationService --> JwtService
+UserDetailsImpl --> UserService
+
+@enduml

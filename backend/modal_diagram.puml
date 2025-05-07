@@ -1,0 +1,139 @@
+@startuml
+
+skinparam dpi 150
+skinparam classFontSize 10
+skinparam padding 2
+skinparam monochrome true
+left to right direction
+
+' Пакет Model
+package "com.familyfinance.model" {
+  class Budget {
+    -id: Long
+    -family: Family
+    -limit: BigDecimal
+    -currentAmount: BigDecimal
+    -transactions: List<Transaction>
+  }
+
+  class Category {
+    -id: Long
+    -name: String
+    -family: Family
+    -transactions: List<Transaction>
+  }
+
+  class Family {
+    -id: Long
+    -name: String
+    -inviteCode: String
+    -owner: User
+    -members: List<FamilyMember>
+    -budget: Budget
+  }
+
+  class FamilyMember {
+    -id: Long
+    -user: User
+    -family: Family
+    -role: FamilyRole
+  }
+
+  class Goal {
+    -id: Long
+    -name: String
+    -targetAmount: BigDecimal
+    -currentAmount: BigDecimal
+    -deadline: LocalDate
+    -family: Family
+  }
+
+  class Transaction {
+    -id: Long
+    -amount: BigDecimal
+    -type: TransactionType
+    -description: String
+    -date: LocalDateTime
+    -category: Category
+    -budget: Budget
+  }
+
+  class User {
+    -id: Long
+    -username: String
+    -email: String
+    -password: String
+    -enabled: boolean
+    -families: List<FamilyMember>
+  }
+}
+
+' Пакет Repository
+package "com.familyfinance.repository" {
+  interface BudgetRepository {
+    +findByFamilyId(familyId: Long): Optional<Budget>
+  }
+
+  interface CategoryRepository {
+    +findByFamilyId(familyId: Long): List<Category>
+  }
+
+  interface FamilyMemberRepository {
+    +findByUserId(userId: Long): List<FamilyMember>
+    +findByFamilyIdAndUserId(familyId: Long, userId: Long): Optional<FamilyMember>
+  }
+
+  interface FamilyRepository {
+    +findByInviteCode(inviteCode: String): Optional<Family>
+  }
+
+  interface GoalRepository {
+    +findByFamilyId(familyId: Long): List<Goal>
+  }
+
+  interface TransactionRepository {
+    +findByBudgetId(budgetId: Long): List<Transaction>
+  }
+
+  interface UserRepository {
+    +findByEmail(email: String): Optional<User>
+  }
+}
+
+' Пакет Enums (нужен для моделей)
+package "com.familyfinance.enums" {
+  enum FamilyRole {
+    OWNER
+    ADMIN
+    MEMBER
+  }
+
+  enum TransactionType {
+    INCOME
+    EXPENSE
+  }
+}
+
+' Связи между моделями
+User "1" -- "0..*" FamilyMember
+Family "1" -- "0..*" FamilyMember
+Family "1" -- "1" Budget
+Family "1" -- "0..*" Category
+Family "1" -- "0..*" Goal
+Budget "1" -- "0..*" Transaction
+Category "1" -- "0..*" Transaction
+
+' Репозитории зависят от моделей
+BudgetRepository --> Budget
+CategoryRepository --> Category
+FamilyMemberRepository --> FamilyMember
+FamilyRepository --> Family
+GoalRepository --> Goal
+TransactionRepository --> Transaction
+UserRepository --> User
+
+' Перечисления используются моделями
+FamilyMember --> FamilyRole
+Transaction --> TransactionType
+
+@enduml

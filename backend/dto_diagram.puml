@@ -1,0 +1,220 @@
+@startuml
+' Настройки для компактности
+skinparam dpi 150
+skinparam classFontSize 10
+skinparam padding 2
+skinparam monochrome true
+left to right direction
+
+' Пакет DTO
+package "com.familyfinance.dto" {
+  ' Аутентификация
+  class AuthenticationResponse {
+    -accessToken: String
+    -refreshToken: String
+  }
+
+  class LoginRequest {
+    -email: String
+    -password: String
+  }
+
+  class RefreshTokenRequest {
+    -refreshToken: String
+  }
+
+  class RegisterRequest {
+    -username: String
+    -email: String
+    -password: String
+  }
+
+  ' Бюджет
+  class BudgetLimitRequest {
+    -limit: BigDecimal
+  }
+
+  class BudgetResponse {
+    -id: Long
+    -familyId: Long
+    -limit: BigDecimal
+    -currentAmount: BigDecimal
+  }
+
+  ' Категории
+  class CategoryRequest {
+    -name: String
+    -familyId: Long
+  }
+
+  class CategoryResponse {
+    -id: Long
+    -name: String
+    -familyId: Long
+  }
+
+  ' Семья
+  class FamilyCreateRequest {
+    -name: String
+  }
+
+  class FamilyJoinRequest {
+    -inviteCode: String
+  }
+
+  class FamilyKickRequest {
+    -memberId: Long
+  }
+
+  class FamilyResponse {
+    -id: Long
+    -name: String
+    -ownerId: Long
+    -members: List<FamilyMemberResponse>
+  }
+
+  class FamilyMemberResponse {
+    -id: Long
+    -username: String
+    -role: FamilyRole
+  }
+
+  class FamilyRoleRequest {
+    -role: FamilyRole
+  }
+
+  class InviteCodeResponse {
+    -inviteCode: String
+  }
+
+  ' Цели
+  class GoalRequest {
+    -name: String
+    -targetAmount: BigDecimal
+    -deadline: LocalDate
+    -familyId: Long
+  }
+
+  class GoalResponse {
+    -id: Long
+    -name: String
+    -targetAmount: BigDecimal
+    -currentAmount: BigDecimal
+    -deadline: LocalDate
+    -familyId: Long
+  }
+
+  class GoalUpdateRequest {
+    -targetAmount: BigDecimal
+    -deadline: LocalDate
+  }
+
+  ' Транзакции
+  class TransactionRequest {
+    -amount: BigDecimal
+    -type: TransactionType
+    -categoryId: Long
+    -description: String
+    -date: LocalDateTime
+  }
+
+  class TransactionResponse {
+    -id: Long
+    -amount: BigDecimal
+    -type: TransactionType
+    -categoryId: Long
+    -description: String
+    -date: LocalDateTime
+    -budgetId: Long
+  }
+
+  ' Пользователь
+  class UserResponse {
+    -id: Long
+    -username: String
+    -email: String
+    -enabled: boolean
+  }
+}
+
+' Пакет Enums
+package "com.familyfinance.enums" {
+  enum FamilyRole {
+    OWNER
+    ADMIN
+    MEMBER
+  }
+
+  enum TransactionType {
+    INCOME
+    EXPENSE
+  }
+}
+
+' Добавление базовых типов для наглядности
+class String <<primitive>>
+class Long <<primitive>>
+class BigDecimal <<primitive>>
+class LocalDate <<primitive>>
+class LocalDateTime <<primitive>>
+class boolean <<primitive>>
+
+' Связи между DTO и перечислениями
+FamilyMemberResponse --> FamilyRole
+FamilyRoleRequest --> FamilyRole
+TransactionRequest --> TransactionType
+TransactionResponse --> TransactionType
+
+' Связи между DTO (агрегация)
+FamilyResponse "1" -- "0..*" FamilyMemberResponse : contains
+
+' Добавление зависимостей от базовых типов для всех DTO
+AuthenticationResponse --> String
+LoginRequest --> String
+RefreshTokenRequest --> String
+RegisterRequest --> String
+
+BudgetLimitRequest --> BigDecimal
+BudgetResponse --> Long
+BudgetResponse --> BigDecimal
+
+CategoryRequest --> String
+CategoryRequest --> Long
+CategoryResponse --> Long
+CategoryResponse --> String
+
+FamilyCreateRequest --> String
+FamilyJoinRequest --> String
+FamilyKickRequest --> Long
+FamilyResponse --> Long
+FamilyResponse --> String
+FamilyMemberResponse --> Long
+FamilyMemberResponse --> String
+FamilyRoleRequest --> FamilyRole
+InviteCodeResponse --> String
+
+GoalRequest --> String
+GoalRequest --> BigDecimal
+GoalRequest --> LocalDate
+GoalRequest --> Long
+GoalResponse --> Long
+GoalResponse --> String
+GoalResponse --> BigDecimal
+GoalResponse --> LocalDate
+GoalUpdateRequest --> BigDecimal
+GoalUpdateRequest --> LocalDate
+
+TransactionRequest --> BigDecimal
+TransactionRequest --> Long
+TransactionRequest --> String
+TransactionRequest --> LocalDateTime
+TransactionResponse --> Long
+TransactionResponse --> BigDecimal
+TransactionResponse --> String
+TransactionResponse --> LocalDateTime
+
+UserResponse --> Long
+UserResponse --> String
+UserResponse --> boolean
+
+@enduml
