@@ -1,0 +1,11 @@
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: family_finance_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_DB: ${POSTGRES_DB}

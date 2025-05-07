@@ -1,0 +1,22 @@
+spring:
+  config:
+    import: file:.env[.properties]
+  application:
+    name: family-finance
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+jwt:
+  access-expiration: 900_000 # 15 minutes
+  refresh-expiration: 2_592_000_000 # 30 days
+  secret-key: ae3ac200-0d59-4029-a952-e8948842f1c4
+
+logging:
+  level:
+    com.maximilian.familyfinance: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
